@@ -46,6 +46,15 @@ export const ACTIVITIES: Activity[] = [
     color: 'hsl(170, 60%, 45%)',
     room: 'laundry',
   },
+  {
+    id: 'gaming',
+    name: 'Gaming Session',
+    icon: '🎮',
+    duration: 3,
+    energyUsage: 1.5, 
+    color: 'hsl(320, 80%, 60%)', 
+    room: 'bedroom',
+  }
 ];
 
 export const TIME_BLOCKS: TimeBlock[] = Array.from({ length: 24 }, (_, i) => {
@@ -135,6 +144,12 @@ export const calculateComfort = (
     if (activity.id === 'heating') {
       if (startHour >= 10 && startHour <= 17) {
         discomfort += 20; // Less needed midday
+      }
+    }
+    
+    if (activityId === 'gaming') {
+      if (startHour < 17) {
+        discomfort += 15; // "I can't relax yet, I have work to do!"
       }
     }
   });
