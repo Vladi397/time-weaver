@@ -26,6 +26,24 @@ const Index: React.FC = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [daySummary, setDaySummary] = useState<DaySummary | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [simulatedHour, setSimulatedHour] = useState(6); // Start at 6 AM
+
+  // Simulate time progression based on scheduled activities
+  useEffect(() => {
+    if (scheduledActivities.length === 0) {
+      setSimulatedHour(6);
+      return;
+    }
+    
+    // Find the latest end time of scheduled activities
+    const latestEnd = scheduledActivities.reduce((max, sa) => {
+      const activity = ACTIVITIES.find(a => a.id === sa.activityId);
+      const endHour = sa.startHour + (activity?.duration || 0);
+      return Math.max(max, endHour);
+    }, 6);
+    
+    setSimulatedHour(Math.min(latestEnd, 23));
+  }, [scheduledActivities]);
 
   // Check if first-time player
   useEffect(() => {
@@ -178,6 +196,7 @@ const Index: React.FC = () => {
             <HouseVisualization 
               scheduledActivities={scheduledActivities}
               gridStress={gridStress}
+              currentHour={simulatedHour}
             />
             
             <Timeline
