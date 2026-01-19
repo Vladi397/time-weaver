@@ -82,28 +82,32 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   const timeOfDay = useMemo(() => getTimeOfDay(currentHour), [currentHour]);
   
   // Determine room states based on scheduled activities in peak hours
+ // Determine room states based on scheduled activities
   const getRoomStates = (): RoomState[] => {
     const rooms: RoomType[] = ['garage', 'laundry', 'kitchen', 'living', 'bedroom'];
     
     return rooms.map(room => {
-      const activityInRoom = scheduledActivities.find(sa => {
+      // UNIFIED LOGIC: Find any scheduled activity for this room.
+      // We removed the strict time check so the icon remains visible 
+      // even after the simulation fast-forwards to the end of the task.
+      const scheduledInstance = scheduledActivities.find(sa => {
         const activity = ACTIVITIES.find(a => a.id === sa.activityId);
         return activity?.room === room;
       });
 
-      const activity = activityInRoom 
-        ? ACTIVITIES.find(a => a.id === activityInRoom.activityId)
+      const activity = scheduledInstance 
+        ? ACTIVITIES.find(a => a.id === scheduledInstance.activityId)
         : undefined;
 
-      // Check if activity is during peak (17-20)
-      const isInPeak = activityInRoom 
-        ? (activityInRoom.startHour >= 17 && activityInRoom.startHour <= 20) ||
-          (activityInRoom.startHour + (activity?.duration || 0) > 17 && activityInRoom.startHour < 21)
+      // Check peak hours (for stress visualization)
+      const isInPeak = scheduledInstance 
+        ? (scheduledInstance.startHour >= 17 && scheduledInstance.startHour <= 20) ||
+          (scheduledInstance.startHour + (activity?.duration || 0) > 17 && scheduledInstance.startHour < 21)
         : false;
 
       return {
         room,
-        isActive: !!activityInRoom,
+        isActive: !!scheduledInstance, // This ensures Bedroom lights up like the others
         isStressed: isInPeak && gridStress > 50,
         activeIcon: activity?.icon,
       };
@@ -212,12 +216,24 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
             {/* Main house grid */}
             <div className="grid grid-cols-3 gap-1 bg-border/30 rounded-lg p-1">
               {/* Top row */}
+              {/* BEDROOM UPDATE */}
               <div 
                 className={`${getRoomClass('bedroom')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('bedroom')}
               >
-                <span className="text-2xl mb-1">🛏️</span>
-                <span className="text-xs text-muted-foreground">Bedroom</span>
+                {roomStates.find(r => r.room === 'bedroom')?.isActive ? (
+                  <>
+                    <span className="text-2xl mb-1 animate-bounce">
+                      {roomStates.find(r => r.room === 'bedroom')?.activeIcon}
+                    </span>
+                    <span className="text-xs text-primary font-medium">Gaming!</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl mb-1">🛏️</span>
+                    <span className="text-xs text-muted-foreground">Bedroom</span>
+                  </>
+                )}
               </div>
               
               <div 
