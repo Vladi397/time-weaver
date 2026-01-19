@@ -16,7 +16,7 @@ export const CostDisplay: React.FC<CostDisplayProps> = ({ cost, isSurgePricing }
             boxShadow: '0 4px 15px hsl(142, 76%, 46%, 0.3)',
           }}
         >
-          $
+          €
         </div>
         <div>
           <span className="cost-display text-warning">{cost.toFixed(2)}</span>
