@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TIME_BLOCKS, ACTIVITIES } from '@/data/gameData';
 import { ScheduledActivity } from '@/types/game';
 
@@ -8,6 +8,9 @@ interface TimelineProps {
   onRemoveActivity: (activityId: string) => void;
   onMoveActivity: (activityId: string, newHour: number) => void;
 }
+
+const ROW_HEIGHT = 42; // Height of each activity row in pixels
+const MIN_HEIGHT = 96; // Minimum height (h-24 equivalent)
 
 export const Timeline: React.FC<TimelineProps> = ({
   scheduledActivities,
@@ -35,8 +38,8 @@ export const Timeline: React.FC<TimelineProps> = ({
     setDragOverHour(hour);
   };
 
-  // Get activity blocks positioned on timeline
-  const getActivityBlocks = () => {
+  // 1. Get basic activity data
+  const rawActivityBlocks = useMemo(() => {
     return scheduledActivities.map(({ activityId, startHour }) => {
       const activity = ACTIVITIES.find(a => a.id === activityId);
       if (!activity) return null;
@@ -54,11 +57,27 @@ export const Timeline: React.FC<TimelineProps> = ({
         ...activity,
         startHour,
         hasPeakHours,
+        // We need this ID to be unique for the key if we have multiples of same type, 
+        // but for now relying on the data provided
+        uniqueId: `${activityId}-${startHour}`, 
       };
-    }).filter(Boolean);
-  };
+    }).filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [scheduledActivities]);
 
-  const activityBlocks = getActivityBlocks();
+  // 2. Calculate layout lanes to prevent overlapping
+  const { blocksWithLanes, totalHeight } = useMemo(() => {
+    const blocks = getLayoutWithLanes(rawActivityBlocks);
+    
+    // Calculate max lane index to determine total container height
+    const maxLane = Math.max(...blocks.map(b => b.lane), 0);
+    // Height is (rows * row_height) + padding
+    const calculatedHeight = (maxLane + 1) * ROW_HEIGHT + 16; 
+    
+    return {
+      blocksWithLanes: blocks,
+      totalHeight: Math.max(MIN_HEIGHT, calculatedHeight)
+    };
+  }, [rawActivityBlocks]);
 
   return (
     <div className="game-card p-4">
@@ -92,9 +111,13 @@ export const Timeline: React.FC<TimelineProps> = ({
         ))}
       </div>
 
-      {/* Timeline slots */}
-      <div className="relative h-24 rounded-lg overflow-hidden border border-border/50">
-        <div className="absolute inset-0 flex">
+      {/* Timeline slots container */}
+      <div 
+        className="relative rounded-lg overflow-hidden border border-border/50 transition-all duration-300 ease-in-out"
+        style={{ height: `${totalHeight}px` }}
+      >
+        {/* Background Grid */}
+        <div className="absolute inset-0 flex h-full">
           {TIME_BLOCKS.map((block) => (
             <div
               key={block.hour}
@@ -102,7 +125,7 @@ export const Timeline: React.FC<TimelineProps> = ({
               onDragOver={(e) => handleDragOver(e, block.hour)}
               onDragLeave={() => setDragOverHour(null)}
               className={`
-                timeline-slot relative flex-1 
+                timeline-slot relative flex-1 h-full
                 ${block.isPeak ? 'peak' : ''}
                 ${dragOverHour === block.hour ? 'bg-accent/30' : ''}
               `}
@@ -117,33 +140,36 @@ export const Timeline: React.FC<TimelineProps> = ({
 
         {/* Scheduled activities */}
         <div className="absolute inset-0 pointer-events-none">
-          {activityBlocks.map((block) => {
-            if (!block) return null;
+          {blocksWithLanes.map((block) => {
             const widthPercent = (block.duration / 24) * 100;
             const leftPercent = (block.startHour / 24) * 100;
 
             return (
               <div
-                key={block.id}
+                key={block.uniqueId}
                 draggable
                 onDragStart={(e) => {
                   e.dataTransfer.setData('activityId', block.id);
                   e.dataTransfer.setData('isMove', 'true');
                 }}
                 className={`
-                  absolute top-2 bottom-2 rounded-lg cursor-grab active:cursor-grabbing
+                  absolute rounded-lg cursor-grab active:cursor-grabbing
                   pointer-events-auto flex items-center gap-2 px-3 text-sm font-medium
-                  transition-all duration-200 hover:scale-[1.02]
+                  transition-all duration-200 hover:scale-[1.02] hover:z-50
                   ${block.hasPeakHours ? 'animate-pulse-glow' : ''}
                 `}
                 style={{
                   left: `${leftPercent}%`,
                   width: `${widthPercent}%`,
+                  // Dynamic positioning based on lane
+                  top: `${block.lane * ROW_HEIGHT + 8}px`,
+                  height: `${ROW_HEIGHT - 6}px`, // Slight gap between rows
                   background: `linear-gradient(135deg, ${block.color}dd 0%, ${block.color}99 100%)`,
                   border: block.hasPeakHours 
                     ? '2px solid hsl(0, 72%, 51%)' 
                     : `1px solid ${block.color}`,
                   boxShadow: `0 4px 15px ${block.color}44`,
+                  zIndex: 10 + block.lane,
                 }}
                 onClick={() => onRemoveActivity(block.id)}
               >
@@ -152,7 +178,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   {block.name}
                 </span>
                 {block.hasPeakHours && (
-                  <span className="absolute -top-2 -right-2 bg-destructive rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  <span className="absolute -top-2 -right-2 bg-destructive rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-md">
                     ⚠
                   </span>
                 )}
@@ -180,3 +206,26 @@ export const Timeline: React.FC<TimelineProps> = ({
     </div>
   );
 };
+
+// Helper function to calculate stacking lanes
+function getLayoutWithLanes(activities: any[]) {
+  // Sort by start time to process in order
+  const sorted = [...activities].sort((a, b) => a.startHour - b.startHour);
+  const lanes: number[] = []; 
+
+  return sorted.map(activity => {
+    // Find the first lane where this activity fits (starts after previous item in lane ends)
+    let laneIndex = lanes.findIndex(laneEndTime => laneEndTime <= activity.startHour);
+
+    if (laneIndex === -1) {
+      // If no lane is free, create a new one
+      laneIndex = lanes.length;
+      lanes.push(0);
+    }
+
+    // Update this lane's end time
+    lanes[laneIndex] = activity.startHour + activity.duration;
+
+    return { ...activity, lane: laneIndex };
+  });
+}
