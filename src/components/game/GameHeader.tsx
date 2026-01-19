@@ -1,14 +1,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { HelpCircle } from 'lucide-react';
 
 interface GameHeaderProps {
   onEndDay: () => void;
   hasScheduledActivities: boolean;
+  onShowTutorial?: () => void;
 }
 
 export const GameHeader: React.FC<GameHeaderProps> = ({
   onEndDay,
   hasScheduledActivities,
+  onShowTutorial,
 }) => {
   return (
     <header className="flex items-center justify-between py-4 px-6 border-b border-border/50">
@@ -39,6 +42,18 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
             ☀️ Morning Start
           </div>
         </div>
+
+        {onShowTutorial && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onShowTutorial}
+            className="border-border/50 hover:bg-muted"
+            title="Show tutorial"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </Button>
+        )}
         
         <Button
           onClick={onEndDay}
