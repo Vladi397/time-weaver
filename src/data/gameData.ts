@@ -1,0 +1,200 @@
+import { Activity, TimeBlock } from '@/types/game';
+
+export const ACTIVITIES: Activity[] = [
+  {
+    id: 'ev-charging',
+    name: 'EV Charging',
+    icon: '🚗',
+    duration: 4,
+    energyUsage: 7.2,
+    color: 'hsl(199, 89%, 48%)',
+    room: 'garage',
+  },
+  {
+    id: 'laundry',
+    name: 'Laundry',
+    icon: '👕',
+    duration: 2,
+    energyUsage: 2.5,
+    color: 'hsl(280, 70%, 55%)',
+    room: 'laundry',
+  },
+  {
+    id: 'dishwasher',
+    name: 'Dishwasher',
+    icon: '🍽️',
+    duration: 1,
+    energyUsage: 1.8,
+    color: 'hsl(38, 92%, 50%)',
+    room: 'kitchen',
+  },
+  {
+    id: 'heating',
+    name: 'Heating Boost',
+    icon: '🔥',
+    duration: 1,
+    energyUsage: 3.0,
+    color: 'hsl(0, 72%, 51%)',
+    room: 'living',
+  },
+  {
+    id: 'dryer',
+    name: 'Dryer',
+    icon: '💨',
+    duration: 2,
+    energyUsage: 3.5,
+    color: 'hsl(170, 60%, 45%)',
+    room: 'laundry',
+  },
+];
+
+export const TIME_BLOCKS: TimeBlock[] = Array.from({ length: 24 }, (_, i) => {
+  const isPeak = i >= 17 && i <= 20; // 5 PM - 8 PM
+  const isHighDemand = i >= 7 && i <= 9; // Morning rush
+
+  return {
+    hour: i,
+    label: `${i.toString().padStart(2, '0')}:00`,
+    isPeak,
+    multiplier: isPeak ? 4.0 : isHighDemand ? 2.0 : 1.0,
+  };
+});
+
+export const BASE_RATE = 0.15; // $ per kWh
+
+export const calculateCost = (
+  activities: { activityId: string; startHour: number }[],
+): number => {
+  let total = 0;
+
+  activities.forEach(({ activityId, startHour }) => {
+    const activity = ACTIVITIES.find(a => a.id === activityId);
+    if (!activity) return;
+
+    for (let h = 0; h < activity.duration; h++) {
+      const hour = startHour + h;
+      if (hour >= 24) continue;
+      
+      const timeBlock = TIME_BLOCKS[hour];
+      const hourCost = activity.energyUsage * BASE_RATE * timeBlock.multiplier;
+      total += hourCost;
+    }
+  });
+
+  return Math.round(total * 100) / 100;
+};
+
+export const calculateGridStress = (
+  activities: { activityId: string; startHour: number }[],
+): number => {
+  // Find the hour with most overlap during peak
+  const hourLoads: number[] = Array(24).fill(0);
+
+  activities.forEach(({ activityId, startHour }) => {
+    const activity = ACTIVITIES.find(a => a.id === activityId);
+    if (!activity) return;
+
+    for (let h = 0; h < activity.duration; h++) {
+      const hour = startHour + h;
+      if (hour < 24) {
+        const timeBlock = TIME_BLOCKS[hour];
+        hourLoads[hour] += activity.energyUsage * (timeBlock.isPeak ? 2 : 1);
+      }
+    }
+  });
+
+  const maxLoad = Math.max(...hourLoads);
+  // Normalize to 0-100, assuming 15kW is dangerous
+  return Math.min(100, Math.round((maxLoad / 15) * 100));
+};
+
+export const calculateComfort = (
+  activities: { activityId: string; startHour: number }[],
+): number => {
+  let discomfort = 0;
+
+  activities.forEach(({ activityId, startHour }) => {
+    const activity = ACTIVITIES.find(a => a.id === activityId);
+    if (!activity) return;
+
+    // EV should ideally finish by morning (uncomfortable if charging at odd hours)
+    if (activity.id === 'ev-charging') {
+      if (startHour >= 6 && startHour <= 22) {
+        discomfort += 10; // Preferred overnight
+      }
+    }
+
+    // Laundry during night is uncomfortable
+    if (activity.id === 'laundry' || activity.id === 'dryer') {
+      if (startHour < 7 || startHour > 21) {
+        discomfort += 15;
+      }
+    }
+
+    // Heating should be during evening/morning
+    if (activity.id === 'heating') {
+      if (startHour >= 10 && startHour <= 17) {
+        discomfort += 20; // Less needed midday
+      }
+    }
+  });
+
+  return Math.max(0, 100 - discomfort);
+};
+
+export const generateSuggestions = (
+  activities: { activityId: string; startHour: number }[],
+) => {
+  const suggestions: {
+    id: string;
+    message: string;
+    activityId: string;
+    fromHour: number;
+    toHour: number;
+    savingsEstimate: number;
+  }[] = [];
+
+  activities.forEach(({ activityId, startHour }) => {
+    const activity = ACTIVITIES.find(a => a.id === activityId);
+    if (!activity) return;
+
+    // Check if any hour is during peak
+    let isPeakScheduled = false;
+    for (let h = 0; h < activity.duration; h++) {
+      if (TIME_BLOCKS[startHour + h]?.isPeak) {
+        isPeakScheduled = true;
+        break;
+      }
+    }
+
+    if (isPeakScheduled) {
+      // Suggest moving to off-peak
+      let suggestedHour: number;
+      
+      if (activityId === 'ev-charging') {
+        suggestedHour = 22; // Overnight
+      } else if (activityId === 'laundry' || activityId === 'dryer') {
+        suggestedHour = 10; // Mid-morning
+      } else if (activityId === 'dishwasher') {
+        suggestedHour = 14; // Early afternoon
+      } else {
+        suggestedHour = 12; // Default to midday
+      }
+
+      const currentCost = activity.energyUsage * activity.duration * BASE_RATE * 4;
+      const newCost = activity.energyUsage * activity.duration * BASE_RATE;
+      const savings = Math.round((currentCost - newCost) * 100) / 100;
+
+      suggestions.push({
+        id: `${activityId}-${startHour}`,
+        message: `Move ${activity.name} to ${suggestedHour}:00`,
+        activityId,
+        fromHour: startHour,
+        toHour: suggestedHour,
+        savingsEstimate: savings,
+      });
+    }
+  });
+
+  return suggestions;
+};
