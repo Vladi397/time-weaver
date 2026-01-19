@@ -209,17 +209,6 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
               transform: 'perspective(500px) rotateX(5deg)',
             }}
           >
-            {/* Roof */}
-            <div 
-              className="absolute -top-8 left-1/2 -translate-x-1/2 w-[110%] h-12 transition-all duration-500"
-              style={{
-                background: timeOfDay === 'night' 
-                  ? 'linear-gradient(135deg, hsl(20, 30%, 15%) 0%, hsl(20, 30%, 22%) 100%)'
-                  : 'linear-gradient(135deg, hsl(20, 40%, 25%) 0%, hsl(20, 40%, 35%) 100%)',
-                clipPath: 'polygon(10% 100%, 50% 0%, 90% 100%)',
-              }}
-            />
-
             {/* Main house grid */}
             <div className="grid grid-cols-3 gap-1 bg-border/30 rounded-lg p-1">
               {/* Top row */}
