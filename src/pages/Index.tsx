@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { GameHeader } from '@/components/game/GameHeader';
 import { CostDisplay } from '@/components/game/CostDisplay';
 import { GridStatusGauge } from '@/components/game/GridStatusGauge';
@@ -8,6 +8,7 @@ import { Timeline } from '@/components/game/Timeline';
 import { HouseVisualization } from '@/components/game/HouseVisualization';
 import { Suggestions } from '@/components/game/Suggestions';
 import { DaySummaryModal } from '@/components/game/DaySummaryModal';
+import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 import { 
   ACTIVITIES, 
   TIME_BLOCKS,
@@ -17,11 +18,32 @@ import {
 } from '@/data/gameData';
 import { ScheduledActivity, Activity, DaySummary } from '@/types/game';
 
+const TUTORIAL_STORAGE_KEY = 'powershift-tutorial-completed';
+
 const Index: React.FC = () => {
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
   const [draggingActivity, setDraggingActivity] = useState<Activity | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [daySummary, setDaySummary] = useState<DaySummary | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Check if first-time player
+  useEffect(() => {
+    const hasCompletedTutorial = localStorage.getItem(TUTORIAL_STORAGE_KEY);
+    if (!hasCompletedTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
+
+  const handleTutorialComplete = useCallback(() => {
+    localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    setShowTutorial(false);
+  }, []);
+
+  const handleTutorialSkip = useCallback(() => {
+    localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    setShowTutorial(false);
+  }, []);
 
   // Calculate derived state
   const currentCost = useMemo(() => calculateCost(scheduledActivities), [scheduledActivities]);
@@ -114,11 +136,16 @@ const Index: React.FC = () => {
     setShowSummary(false);
   }, []);
 
+  const handleShowTutorial = useCallback(() => {
+    setShowTutorial(true);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <GameHeader 
         onEndDay={handleEndDay}
         hasScheduledActivities={scheduledActivities.length > 0}
+        onShowTutorial={handleShowTutorial}
       />
 
       <main className="container py-6">
@@ -198,6 +225,13 @@ const Index: React.FC = () => {
         onRestart={handleRestart}
         summary={daySummary}
       />
+
+      {showTutorial && (
+        <TutorialOverlay
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialSkip}
+        />
+      )}
     </div>
   );
 };
