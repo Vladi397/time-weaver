@@ -14,10 +14,10 @@ interface TutorialStep {
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 1,
-    title: "Welcome to Power Shift Daily!",
+    title: "Welcome to The Daily Grid!",
     description: "You're about to plan your day's energy usage. Your goal: schedule activities to minimize costs and grid stress while staying comfortable.",
     emoji: "⚡",
-    tip: "Think of this as a puzzle — finding the perfect schedule!"
+    tip: "Think of this as a puzzle - finding the perfect schedule!"
   },
   {
     id: 2,
@@ -49,7 +49,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     description: "The right panel shows real-time feedback: your costs, grid stress level, and comfort score. Every change you make updates these instantly!",
     emoji: "📊",
     highlight: 'meters',
-    tip: "Green is good, red is bad — keep things in the green!"
+    tip: "Green is good, red is bad - keep things in the green!"
   },
   {
     id: 6,
@@ -57,7 +57,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     description: "If you schedule during peak hours, the game will suggest better times. Click a suggestion to automatically move that activity!",
     emoji: "💡",
     highlight: 'suggestions',
-    tip: "Suggestions are reversible — experiment freely!"
+    tip: "Suggestions are reversible - experiment freely!"
   },
   {
     id: 7,
@@ -118,15 +118,15 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
   const getHighlightStyle = (): React.CSSProperties => {
     switch (step.highlight) {
       case 'activities':
-        return { left: '0', top: '120px', width: '25%', height: '60%' };
+        return { left: '85px', top: '100px', width: '22%', height: '85%' };
       case 'timeline':
         return { left: '25%', top: '55%', width: '50%', height: '20%' };
       case 'peak':
         return { left: '58%', top: '55%', width: '17%', height: '20%' };
       case 'meters':
-        return { right: '0', top: '120px', width: '25%', height: '40%' };
+        return { right: '90px', top: '100px', width: '21%', height: '46%' };
       case 'suggestions':
-        return { right: '0', top: '55%', width: '25%', height: '30%' };
+        return { right: '90px', top: '59%', width: '21%', height: '23%' };
       default:
         return {};
     }
@@ -134,22 +134,33 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      {/* LOGIC CHANGE: 
+        If there is NO highlight (e.g. Welcome screen), use a simple dark background.
+        If there IS a highlight, the highlight div itself creates the background using a giant shadow.
+      */}
+      {!step.highlight && (
+        <div className="fixed inset-0 z-40 bg-black/60" />
+      )}
       
-      {/* Highlight area */}
+      {/* Highlight area with "Spotlight" effect */}
       {step.highlight && (
         <div 
-          className="absolute border-4 border-accent rounded-xl animate-pulse pointer-events-none z-10"
+          className="absolute border-4 border-accent rounded-xl animate-pulse pointer-events-none z-40"
           style={{
             ...getHighlightStyle(),
-            boxShadow: '0 0 40px hsl(var(--accent) / 0.5), inset 0 0 20px hsl(var(--accent) / 0.1)'
+            // This huge shadow (9999px) creates the dark backdrop for the rest of the screen,
+            // leaving the center of this div transparent (the "hole").
+            boxShadow: `
+              0 0 0 9999px rgba(0, 0, 0, 0.6), 
+              0 0 40px hsl(var(--accent) / 0.5), 
+              inset 0 0 20px hsl(var(--accent) / 0.1)
+            `
           }}
         />
       )}
 
       {/* Tutorial Card */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
         <div 
           className={`
             game-card max-w-md p-6 pointer-events-auto

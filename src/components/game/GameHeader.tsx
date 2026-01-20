@@ -27,7 +27,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
         </div>
         <div>
           <h1 className="font-display font-bold text-xl tracking-tight">
-            Power Shift Daily
+            The Daily Grid
           </h1>
           <p className="text-xs text-muted-foreground">
             Schedule your energy • Beat the peak
