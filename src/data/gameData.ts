@@ -17,7 +17,7 @@ export const ACTIVITIES: Activity[] = [
     name: 'EV Charging',
     icon: Car, 
     duration: 4,
-    energyUsage: 7.2,
+    energyUsage: 4.8,
     color: 'hsl(142, 76%, 36%)',
     room: 'garage',
   },
@@ -35,7 +35,7 @@ export const ACTIVITIES: Activity[] = [
     name: 'Cooking',
     icon: Utensils, 
     duration: 1,
-    energyUsage: 3.0,
+    energyUsage: 2.6,
     color: 'hsl(31, 90%, 55%)',
     room: 'kitchen',
   },
@@ -44,7 +44,7 @@ export const ACTIVITIES: Activity[] = [
     name: 'Heating',
     icon: Thermometer,
     duration: 5,
-    energyUsage: 1.5,
+    energyUsage: 3.5,
     color: 'hsl(0, 84%, 60%)',
     room: 'living',
   },
@@ -53,7 +53,7 @@ export const ACTIVITIES: Activity[] = [
     name: 'Gaming Session',
     icon: Gamepad2, 
     duration: 3,
-    energyUsage: 0.5,
+    energyUsage: 1.0,
     color: 'hsl(320, 80%, 60%)',
     room: 'bedroom',
   },
@@ -189,7 +189,7 @@ export const generateSuggestions = (
       let suggestedHour: number;
       
       if (activityId === 'ev-charging') {
-        suggestedHour = 22; // Overnight
+        suggestedHour = 2; // Overnight
       } else if (activityId === 'laundry' || activityId === 'dryer') {
         suggestedHour = 10; // Mid-morning
       } else if (activityId === 'dishwasher') {
