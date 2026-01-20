@@ -36,13 +36,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="text-right mr-4">
-          <div className="text-xs text-muted-foreground">Current Time</div>
-          <div className="font-display font-semibold text-accent">
-            ☀️ Morning Start
-          </div>
-        </div>
-
         {onShowTutorial && (
           <Button
             variant="outline"

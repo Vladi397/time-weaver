@@ -37,7 +37,7 @@ interface TimelineProps {
 }
 
 const ROW_HEIGHT = 44; 
-const MIN_HEIGHT = 120;
+const MIN_HEIGHT = 80;
 
 export const Timeline: React.FC<TimelineProps> = ({
   scheduledActivities,
