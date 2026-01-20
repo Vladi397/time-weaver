@@ -31,7 +31,9 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({
             background: `linear-gradient(135deg, ${activity.color}33 0%, ${activity.color}11 100%)`,
           }}
         >
-          {activity.icon}
+          <div className="text-3xl mb-2" style={{ color: activity.color }}>
+            <activity.icon className="w-8 h-8" />
+          </div>
         </div>
         
         <div className="flex-1 min-w-0">

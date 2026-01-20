@@ -3,7 +3,7 @@ import { LucideIcon } from 'lucide-react';
 export interface Activity {
   id: string;
   name: string;
-  icon: string;
+  icon: LucideIcon;
   duration: number; // in hours
   energyUsage: number; // kW
   color: string;

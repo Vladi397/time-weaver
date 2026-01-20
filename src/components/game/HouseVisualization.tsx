@@ -1,7 +1,17 @@
 import React, { useMemo } from 'react';
 import { ACTIVITIES } from '@/data/gameData';
 import { ScheduledActivity, RoomType } from '@/types/game';
-import { Moon, Sun, Sunrise, Sunset } from 'lucide-react';
+import { 
+  Moon, 
+  Sun, 
+  Sunrise, 
+  Sunset, 
+  Bed, 
+  Armchair, 
+  Utensils, 
+  Car, 
+  Shirt 
+} from 'lucide-react';
 
 interface HouseVisualizationProps {
   scheduledActivities: ScheduledActivity[];
@@ -13,10 +23,12 @@ interface RoomState {
   room: RoomType;
   isActive: boolean;
   isStressed: boolean;
-  activeIcon?: string;
+  // This expects a React Component (like <Car />), not a string
+  activeIcon?: React.ElementType; 
 }
 
-// Calculate time-of-day lighting
+// --- Visual Helpers ---
+
 const getTimeOfDay = (hour: number) => {
   if (hour >= 5 && hour < 8) return 'dawn';
   if (hour >= 8 && hour < 17) return 'day';
@@ -74,6 +86,8 @@ const getWindowGlow = (timeOfDay: string, isActive: boolean) => {
   return isActive ? '0 0 20px hsl(199, 89%, 48%, 0.4)' : 'none';
 };
 
+// --- Main Component ---
+
 export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   scheduledActivities,
   gridStress,
@@ -81,15 +95,12 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 }) => {
   const timeOfDay = useMemo(() => getTimeOfDay(currentHour), [currentHour]);
   
-  // Determine room states based on scheduled activities in peak hours
- // Determine room states based on scheduled activities
+  // Determine room states based on scheduled activities
   const getRoomStates = (): RoomState[] => {
     const rooms: RoomType[] = ['garage', 'laundry', 'kitchen', 'living', 'bedroom'];
     
     return rooms.map(room => {
-      // UNIFIED LOGIC: Find any scheduled activity for this room.
-      // We removed the strict time check so the icon remains visible 
-      // even after the simulation fast-forwards to the end of the task.
+      // Find any scheduled activity for this room
       const scheduledInstance = scheduledActivities.find(sa => {
         const activity = ACTIVITIES.find(a => a.id === sa.activityId);
         return activity?.room === room;
@@ -107,9 +118,9 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
       return {
         room,
-        isActive: !!scheduledInstance, // This ensures Bedroom lights up like the others
+        isActive: !!scheduledInstance,
         isStressed: isInPeak && gridStress > 50,
-        activeIcon: activity?.icon,
+        activeIcon: activity?.icon, // This is now a component reference (e.g., Car)
       };
     });
   };
@@ -130,7 +141,6 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
       };
     }
     if (state.isActive) {
-      const glowColor = isNightTime ? 'hsl(45, 90%, 60%)' : 'hsl(199, 89%, 48%)';
       return {
         background: isNightTime 
           ? 'linear-gradient(135deg, hsl(45, 70%, 25%) 0%, hsl(45, 60%, 35%) 100%)'
@@ -215,103 +225,141 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
           >
             {/* Main house grid */}
             <div className="grid grid-cols-3 gap-1 bg-border/30 rounded-lg p-1">
-              {/* Top row */}
-              {/* BEDROOM UPDATE */}
+              
+              {/* --- TOP ROW --- */}
+              
+              {/* BEDROOM */}
               <div 
                 className={`${getRoomClass('bedroom')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('bedroom')}
               >
-                {roomStates.find(r => r.room === 'bedroom')?.isActive ? (
-                  <>
-                    <span className="text-2xl mb-1 animate-bounce">
-                      {roomStates.find(r => r.room === 'bedroom')?.activeIcon}
-                    </span>
-                    <span className="text-xs text-primary font-medium">Gaming!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl mb-1">🛏️</span>
-                    <span className="text-xs text-muted-foreground">Bedroom</span>
-                  </>
-                )}
+                {(() => {
+                   const state = roomStates.find(r => r.room === 'bedroom');
+                   const ActiveIcon = state?.activeIcon;
+                   return state?.isActive && ActiveIcon ? (
+                    <>
+                      <span className="mb-1 animate-bounce">
+                        <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
+                      </span>
+                      <span className="text-xs text-primary font-medium">Gaming!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mb-1">
+                        <Bed className="w-8 h-8 text-white/60" />
+                      </span>
+                      <span className="text-xs text-muted-foreground">Bedroom</span>
+                    </>
+                  );
+                })()}
               </div>
               
+              {/* LIVING ROOM */}
               <div 
                 className={`${getRoomClass('living')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('living')}
               >
-                {roomStates.find(r => r.room === 'living')?.activeIcon ? (
-                  <>
-                    <span className="text-2xl mb-1 animate-float">
-                      {roomStates.find(r => r.room === 'living')?.activeIcon}
-                    </span>
-                    <span className="text-xs text-primary font-medium">Active!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl mb-1">🛋️</span>
-                    <span className="text-xs text-muted-foreground">Living</span>
-                  </>
-                )}
+                {(() => {
+                   const state = roomStates.find(r => r.room === 'living');
+                   const ActiveIcon = state?.activeIcon;
+                   return state?.isActive && ActiveIcon ? (
+                    <>
+                      <span className="mb-1 animate-float">
+                        <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
+                      </span>
+                      <span className="text-xs text-primary font-medium">Active!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mb-1">
+                        <Armchair className="w-8 h-8 text-white/60" />
+                      </span>
+                      <span className="text-xs text-muted-foreground">Living</span>
+                    </>
+                  );
+                })()}
               </div>
 
+              {/* KITCHEN */}
               <div 
                 className={`${getRoomClass('kitchen')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('kitchen')}
               >
-                {roomStates.find(r => r.room === 'kitchen')?.activeIcon ? (
-                  <>
-                    <span className="text-2xl mb-1 animate-float">
-                      {roomStates.find(r => r.room === 'kitchen')?.activeIcon}
-                    </span>
-                    <span className="text-xs text-primary font-medium">Active!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl mb-1">🍳</span>
-                    <span className="text-xs text-muted-foreground">Kitchen</span>
-                  </>
-                )}
+                {(() => {
+                   const state = roomStates.find(r => r.room === 'kitchen');
+                   const ActiveIcon = state?.activeIcon;
+                   return state?.isActive && ActiveIcon ? (
+                    <>
+                      <span className="mb-1 animate-float">
+                         <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
+                      </span>
+                      <span className="text-xs text-primary font-medium">Active!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mb-1">
+                        <Utensils className="w-8 h-8 text-white/60" />
+                      </span>
+                      <span className="text-xs text-muted-foreground">Kitchen</span>
+                    </>
+                  );
+                })()}
               </div>
 
-              {/* Bottom row */}
+              {/* --- BOTTOM ROW --- */}
+
+              {/* GARAGE */}
               <div 
                 className={`${getRoomClass('garage')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('garage')}
               >
-                {roomStates.find(r => r.room === 'garage')?.activeIcon ? (
-                  <>
-                    <span className="text-2xl mb-1 animate-float">
-                      {roomStates.find(r => r.room === 'garage')?.activeIcon}
-                    </span>
-                    <span className="text-xs text-primary font-medium">Charging!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl mb-1">🚗</span>
-                    <span className="text-xs text-muted-foreground">Garage</span>
-                  </>
-                )}
+                {(() => {
+                   const state = roomStates.find(r => r.room === 'garage');
+                   const ActiveIcon = state?.activeIcon;
+                   return state?.isActive && ActiveIcon ? (
+                    <>
+                      <span className="mb-1 animate-float">
+                        <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
+                      </span>
+                      <span className="text-xs text-primary font-medium">Charging!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mb-1">
+                        <Car className="w-8 h-8 text-white/60" />
+                      </span>
+                      <span className="text-xs text-muted-foreground">Garage</span>
+                    </>
+                  );
+                })()}
               </div>
 
+              {/* LAUNDRY */}
               <div 
                 className={`${getRoomClass('laundry')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center col-span-2`}
                 style={getRoomStyle('laundry')}
               >
-                {roomStates.find(r => r.room === 'laundry')?.activeIcon ? (
-                  <>
-                    <span className="text-2xl mb-1 animate-float">
-                      {roomStates.find(r => r.room === 'laundry')?.activeIcon}
-                    </span>
-                    <span className="text-xs text-primary font-medium">Running!</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl mb-1">🧺</span>
-                    <span className="text-xs text-muted-foreground">Laundry Room</span>
-                  </>
-                )}
+                {(() => {
+                   const state = roomStates.find(r => r.room === 'laundry');
+                   const ActiveIcon = state?.activeIcon;
+                   return state?.isActive && ActiveIcon ? (
+                    <>
+                      <span className="mb-1 animate-float">
+                        <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
+                      </span>
+                      <span className="text-xs text-primary font-medium">Running!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mb-1">
+                        <Shirt className="w-8 h-8 text-white/60" />
+                      </span>
+                      <span className="text-xs text-muted-foreground">Laundry Room</span>
+                    </>
+                  );
+                })()}
               </div>
+
             </div>
           </div>
         </div>

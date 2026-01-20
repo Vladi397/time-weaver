@@ -335,9 +335,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                         >
                             {/* Icon Wrapper */}
                             <span className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center backdrop-blur-[1px]">
-                                <span className="text-[20px] leading-none filter drop-shadow-md group-hover:scale-110 transition-transform">
-                                    {block.icon}
-                                </span>
+                                <block.icon className="w-5 h-5 text-white filter drop-shadow-md group-hover:scale-110 transition-transform" />
                             </span>
 
                             {/* Warning Indicator */}
@@ -358,7 +356,8 @@ export const Timeline: React.FC<TimelineProps> = ({
                         <div className="space-y-1.5 min-w-[140px]">
                             <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
                                 <span className="font-display font-semibold flex items-center gap-2 text-sm">
-                                    {block.icon} {block.name}
+                                  
+                                    <block.icon className="w-4 h-4" /> {block.name}
                                 </span>
                             </div>
                             

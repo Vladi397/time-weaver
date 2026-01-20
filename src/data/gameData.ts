@@ -1,60 +1,62 @@
-import { Activity, TimeBlock } from '@/types/game';
+import { Activity, TimeBlock } from '../types/game';
+
+import { 
+  Zap, 
+  Car, 
+  Shirt, 
+  Utensils, 
+  Tv, 
+  Gamepad2, 
+  Thermometer, 
+  Lightbulb 
+} from 'lucide-react';
 
 export const ACTIVITIES: Activity[] = [
   {
     id: 'ev-charging',
     name: 'EV Charging',
-    icon: '🚗',
+    icon: Car, 
     duration: 4,
     energyUsage: 7.2,
-    color: 'hsl(199, 89%, 48%)',
+    color: 'hsl(142, 76%, 36%)',
     room: 'garage',
   },
   {
     id: 'laundry',
     name: 'Laundry',
-    icon: '👕',
+    icon: Shirt, // Was '🧺'
     duration: 2,
-    energyUsage: 2.5,
-    color: 'hsl(280, 70%, 55%)',
+    energyUsage: 2.1,
+    color: 'hsl(217, 91%, 60%)',
     room: 'laundry',
   },
   {
-    id: 'dishwasher',
-    name: 'Dishwasher',
-    icon: '🍽️',
+    id: 'cooking',
+    name: 'Cooking',
+    icon: Utensils, // Was '🍳'
     duration: 1,
-    energyUsage: 1.8,
-    color: 'hsl(38, 92%, 50%)',
+    energyUsage: 3.0,
+    color: 'hsl(31, 90%, 55%)',
     room: 'kitchen',
   },
   {
     id: 'heating',
-    name: 'Heating Boost',
-    icon: '🔥',
-    duration: 1,
-    energyUsage: 3.0,
-    color: 'hsl(0, 72%, 51%)',
+    name: 'Heating',
+    icon: Thermometer, // Was '🌡️'
+    duration: 6,
+    energyUsage: 1.5,
+    color: 'hsl(0, 84%, 60%)',
     room: 'living',
-  },
-  {
-    id: 'dryer',
-    name: 'Dryer',
-    icon: '💨',
-    duration: 2,
-    energyUsage: 3.5,
-    color: 'hsl(170, 60%, 45%)',
-    room: 'laundry',
   },
   {
     id: 'gaming',
     name: 'Gaming Session',
-    icon: '🎮',
+    icon: Gamepad2, // Was '🎮'
     duration: 3,
-    energyUsage: 1.5, 
-    color: 'hsl(320, 80%, 60%)', 
+    energyUsage: 0.5,
+    color: 'hsl(320, 80%, 60%)',
     room: 'bedroom',
-  }
+  },
 ];
 
 export const TIME_BLOCKS: TimeBlock[] = Array.from({ length: 24 }, (_, i) => {
