@@ -156,10 +156,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   };
 
   return (
-    // UPDATED: justify-end ensures content is at the bottom, pb-8 adds spacing
-    // Change 'justify-center' or 'justify-end' to 'justify-start'
-// Add 'pt-20' (top padding) to push the content down
-<div className="game-card p-4 relative overflow-hidden flex flex-col items-center justify-start min-h-[400px] pt-10">
+    <div className="game-card p-4 relative overflow-hidden flex flex-col items-center justify-end min-h-[400px] pt-7 pb-2">
       {/* Sky background with time-based gradient */}
       <div 
         className="absolute inset-0 transition-all duration-1000"
@@ -218,17 +215,11 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
             }}
           >
             {/* Main house grid */}
-            // Inside src/components/game/HouseVisualization.tsx
-
-// ... (imports and helper functions remain the same)
-
-// ... inside the return statement ...
-            {/* Main house grid */}
             <div className="grid grid-cols-3 gap-1 bg-border/30 rounded-lg p-1">
               
               {/* --- TOP ROW --- */}
               
-              {/* BEDROOM (Unchanged) */}
+              {/* BEDROOM */}
               <div 
                 className={`${getRoomClass('bedroom')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('bedroom')}
@@ -254,7 +245,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
                 })()}
               </div>
               
-              {/* LAUNDRY (Moved Here! Was Living Room) */}
+              {/* LAUNDRY */}
               <div 
                 className={`${getRoomClass('laundry')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('laundry')}
@@ -280,7 +271,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
                 })()}
               </div>
 
-              {/* KITCHEN (Unchanged) */}
+              {/* KITCHEN */}
               <div 
                 className={`${getRoomClass('kitchen')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('kitchen')}
@@ -308,7 +299,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
               {/* --- BOTTOM ROW --- */}
 
-              {/* GARAGE (Unchanged) */}
+              {/* GARAGE */}
               <div 
                 className={`${getRoomClass('garage')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('garage')}
@@ -334,8 +325,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
                 })()}
               </div>
 
-              {/* LIVING ROOM (Moved Here! Was Laundry) */}
-              {/* Added 'col-span-2' to make it the big room */}
+              {/* LIVING ROOM */}
               <div 
                 className={`${getRoomClass('living')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center col-span-2`}
                 style={getRoomStyle('living')}
