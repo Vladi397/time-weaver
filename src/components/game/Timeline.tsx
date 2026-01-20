@@ -9,6 +9,26 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+// --- Enhanced Icons ---
+const SunIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="2">
+    <defs>
+      <filter id="sun-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+    <circle cx="12" cy="12" r="4" className="fill-yellow-400 stroke-yellow-500" />
+    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" className="stroke-yellow-500" />
+  </svg>
+);
+
+const MoonIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="2">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" className="fill-slate-300/30 stroke-slate-300" />
+  </svg>
+);
+
 interface TimelineProps {
   scheduledActivities: ScheduledActivity[];
   onDropActivity: (activityId: string, hour: number) => void;
@@ -16,8 +36,8 @@ interface TimelineProps {
   onMoveActivity: (activityId: string, newHour: number) => void;
 }
 
-const ROW_HEIGHT = 42; // Reverted to original height for compactness
-const MIN_HEIGHT = 96;
+const ROW_HEIGHT = 44; 
+const MIN_HEIGHT = 120;
 
 export const Timeline: React.FC<TimelineProps> = ({
   scheduledActivities,
@@ -47,7 +67,7 @@ export const Timeline: React.FC<TimelineProps> = ({
     setDragOverHour(hour);
   };
 
-  // 1) Process activities with derived data
+  // 1) Process activities
   const rawActivityBlocks = useMemo(() => {
     return scheduledActivities
       .map(({ activityId, startHour }) => {
@@ -55,7 +75,6 @@ export const Timeline: React.FC<TimelineProps> = ({
         if (!activity) return null;
 
         const duration = Math.max(2, activity.duration);
-        
         let cost = 0;
         let hasPeakHours = false;
         
@@ -80,11 +99,11 @@ export const Timeline: React.FC<TimelineProps> = ({
       .filter((item): item is NonNullable<typeof item> => item !== null);
   }, [scheduledActivities]);
 
-  // 2) Layout calculation (Lanes)
+  // 2) Layout calculation
   const { blocksWithLanes, totalHeight } = useMemo(() => {
     const blocks = getLayoutWithLanes(rawActivityBlocks);
     const maxLaneIndex = Math.max(...blocks.map((b) => b.lane), 0);
-    const calculatedHeight = (maxLaneIndex + 1) * ROW_HEIGHT + 16;
+    const calculatedHeight = (maxLaneIndex + 1) * ROW_HEIGHT + 24;
 
     return {
       blocksWithLanes: blocks,
@@ -92,10 +111,9 @@ export const Timeline: React.FC<TimelineProps> = ({
     };
   }, [rawActivityBlocks]);
 
-  // 3) Calculate Ghost Block
+  // 3) Ghost Block
   const ghostBlock = useMemo(() => {
     if (dragOverHour === null || !draggingInternalId) return null;
-    
     const [actId] = draggingInternalId.split('-'); 
     const activity = ACTIVITIES.find(a => a.id === actId);
     if (!activity) return null;
@@ -104,92 +122,183 @@ export const Timeline: React.FC<TimelineProps> = ({
     const widthPercent = (duration / 24) * 100;
     const leftPercent = (dragOverHour / 24) * 100;
 
-    return {
-        left: `${leftPercent}%`,
-        width: `${widthPercent}%`,
-    };
+    return { left: `${leftPercent}%`, width: `${widthPercent}%` };
   }, [dragOverHour, draggingInternalId]);
 
   return (
     <TooltipProvider>
-      <div className="game-card p-4">
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-4">
-           <h3 className="font-display font-semibold text-lg">Daily Schedule</h3>
-          
-          <div className="flex items-center gap-4 text-xs">
-            <div className="flex items-center gap-1">
-               <div className="w-3 h-3 rounded bg-muted" />
+      <div className="game-card p-5 relative overflow-hidden group">
+        
+        {/* Background Ambient Glow */}
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+           <h3 className="font-display font-bold text-xl tracking-tight text-foreground/90">
+             Daily Schedule
+           </h3>
+           <div className="flex items-center gap-3 text-[10px] md:text-xs font-medium bg-background/40 p-1.5 rounded-lg border border-border/50 backdrop-blur-sm shadow-sm">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                <span className="text-muted-foreground">Off-peak</span>
             </div>
-            <div className="flex items-center gap-1">
-               <div className="w-3 h-3 rounded" style={{ background: 'hsl(24, 100%, 50%)' }} />
-               <span className="text-muted-foreground">Peak Hours</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md">
+               <div className="w-2 h-2 rounded-full bg-[hsl(var(--peak))] shadow-[0_0_8px_rgba(249,115,22,0.5)] animate-pulse" />
+               <span className="text-[hsl(var(--peak))]">Peak Hours</span>
             </div>
           </div>
         </div>
 
-        {/* Time Labels */}
-        <div className="flex mb-1">
-          {TIME_BLOCKS.filter((_, i) => i % 3 === 0).map((block) => (
-            <div
-              key={block.hour}
-              className="flex-1 text-xs text-muted-foreground text-center"
-              style={{ minWidth: 0 }}
-            >
-              {block.label}
+        {/* --- ENHANCED SKY VISUALIZATION --- */}
+        <div className="relative h-16 mb-2 w-full select-none overflow-hidden rounded-t-xl bg-gradient-to-b from-[#0f172a] to-[#1e293b] border border-border/30 shadow-inner">
+            
+            {/* Stars / Noise texture could go here */}
+            
+            <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="skyPathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#64748b" stopOpacity="0.3" /> {/* Night */}
+                        <stop offset="15%" stopColor="#3b82f6" stopOpacity="0.8" /> {/* Dawn */}
+                        <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />   {/* Noon */}
+                        <stop offset="85%" stopColor="#3b82f6" stopOpacity="0.8" /> {/* Dusk */}
+                        <stop offset="100%" stopColor="#64748b" stopOpacity="0.3" /> {/* Night */}
+                    </linearGradient>
+                    
+                    <filter id="glowPath" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+                
+                {/* The Path Glow */}
+                <path 
+                    d="M-5,85 C 20,85 30,25 50,25 C 70,25 80,85 105,85" 
+                    fill="none" 
+                    stroke="url(#skyPathGradient)" 
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    filter="url(#glowPath)"
+                    opacity="0.5"
+                />
+
+                {/* The Crisp Path Line */}
+                <path 
+                    d="M-5,85 C 20,85 30,25 50,25 C 70,25 80,85 105,85" 
+                    fill="none" 
+                    stroke="url(#skyPathGradient)" 
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    className="drop-shadow-md"
+                />
+            </svg>
+
+            {/* Celestial Bodies */}
+            <div className="absolute inset-0 w-full h-full pointer-events-none">
+                {/* Moon - Early Morning */}
+                <div className="absolute left-[8%] top-[55%] w-6 h-6 opacity-80 animate-float">
+                    <MoonIcon className="w-full h-full text-slate-300 drop-shadow-[0_0_8px_rgba(203,213,225,0.4)]" />
+                </div>
+                
+                {/* Sun - Noon (Animated) */}
+                <div className="absolute left-[50%] top-[12%] -translate-x-1/2 w-10 h-10 z-10">
+                     <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full animate-pulse"></div>
+                    <SunIcon className="w-full h-full text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-[spin_16s_linear_infinite]" />
+                </div>
+
+                {/* Moon - Late Night */}
+                <div className="absolute right-[8%] top-[55%] w-6 h-6 opacity-80 animate-float" style={{ animationDelay: '1.5s' }}>
+                    <MoonIcon className="w-full h-full text-slate-300 drop-shadow-[0_0_8px_rgba(203,213,225,0.4)]" />
+                </div>
             </div>
-          ))}
+
+            {/* Bottom Horizon Line */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-border to-transparent opacity-50"></div>
         </div>
 
-        {/* Timeline Container */}
+        {/* Time Labels */}
+        <div className="relative flex w-full mb-1 px-px">
+          {TIME_BLOCKS.map((block, i) => {
+            const showLabel = i % 2 === 0; 
+            return (
+                <div 
+                    key={block.hour} 
+                    className="flex-1 text-center relative h-6"
+                >
+                    {showLabel && (
+                        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 group/time">
+                            <div className="w-px h-1.5 bg-border/60 group-hover/time:bg-primary/60 transition-colors"></div>
+                            <span className="text-[10px] text-muted-foreground font-mono font-medium group-hover/time:text-foreground transition-colors">
+                                {block.label}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            );
+          })}
+        </div>
+
+        {/* Timeline Grid */}
         <div
-            className="relative rounded-lg overflow-hidden border border-border/50 transition-all duration-300 ease-in-out"
+            className="relative rounded-xl overflow-hidden border border-border/40 bg-background/30 shadow-inner transition-all duration-300"
             style={{ height: `${totalHeight}px` }}
         >
-            {/* Background Grid */}
+            {/* Background Columns */}
             <div className="absolute inset-0 flex h-full">
               {TIME_BLOCKS.map((block) => (
                 <div
                   key={block.hour}
                   onDrop={(e) => handleDrop(e, block.hour)}
                   onDragOver={(e) => handleDragOver(e, block.hour)}
-                  className={`
-                    timeline-slot relative flex-1 h-full
-                    ${block.isPeak ? 'peak' : ''}
-                    ${dragOverHour === block.hour ? 'bg-accent/30' : ''}
-                  `}
+                  className={cn(
+                    "relative flex-1 h-full border-r border-border/10 transition-colors duration-200",
+                    block.isPeak && "timeline-slot peak", // Uses the striped pattern from CSS
+                    dragOverHour === block.hour && "bg-accent/10"
+                  )}
                 >
-                   {block.hour % 6 === 0 && <div className="absolute top-0 left-0 w-px h-full bg-border/50" />}
+                   {/* Vertical Grid Lines */}
+                   <div className={cn(
+                       "absolute top-0 left-0 w-px h-full",
+                       block.hour % 2 === 0 ? "bg-border/20" : "bg-transparent"
+                   )} />
                 </div>
               ))}
             </div>
 
-            {/* Ghost Preview Block */}
+            {/* Ghost Preview */}
             {ghostBlock && (
                 <div 
-                    className="absolute pointer-events-none z-0 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5"
+                    className="absolute pointer-events-none z-0 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 animate-pulse"
                     style={{
                         left: ghostBlock.left,
                         width: ghostBlock.width,
-                        top: 4,
-                        bottom: 4
+                        top: 6,
+                        bottom: 6
                     }}
                 />
             )}
 
-            {/* Activities */}
+            {/* Activity Blocks */}
             <div className="absolute inset-0 pointer-events-none">
               {blocksWithLanes.map((block) => {
                 const widthPercent = (block.duration / 24) * 100;
                 const leftPercent = (block.startHour / 24) * 100;
                 const isDragging = draggingInternalId === block.uniqueId;
                 
-                // RESTORED: Original logic for borders and colors
-                const borderColor = block.hasPeakHours ? 'hsl(0, 72%, 51%)' : block.color;
+                // RESTORED: Specific border color for separation
+                // If peak, we force a "Danger" red border, otherwise use the activity's own color
+                const borderColor = block.hasPeakHours 
+                    ? 'hsl(var(--destructive))' 
+                    : block.color;
+
+                const borderStyle = block.hasPeakHours ? '2px solid' : '2px solid';
+
+                // We also add a subtle glow matching the activity color
+                const shadow = block.hasPeakHours
+                    ? `0 0 15px hsl(var(--destructive) / 0.5), inset 0 0 10px hsl(var(--destructive) / 0.2)`
+                    : `0 4px 12px rgba(0,0,0,0.5), 0 0 8px ${block.color}44`; // Soft colored glow
 
                 return (
-                  <Tooltip key={block.uniqueId} delayDuration={300}>
+                  <Tooltip key={block.uniqueId} delayDuration={0}>
                     <TooltipTrigger asChild>
                         <div
                             draggable
@@ -205,54 +314,80 @@ export const Timeline: React.FC<TimelineProps> = ({
                             className={cn(
                                 "absolute rounded-lg cursor-grab active:cursor-grabbing",
                                 "pointer-events-auto transition-all duration-200 group select-none",
-                                isDragging ? "opacity-50 scale-95" : "hover:scale-[1.04] hover:z-50",
-                                block.hasPeakHours ? 'animate-pulse-glow' : ''
+                                "flex items-center justify-center",
+                                isDragging ? "opacity-40 scale-95 grayscale" : "hover:scale-[1.03] hover:z-50 hover:brightness-110",
+                                block.hasPeakHours ? 'animate-pulse-glow z-20' : 'z-10'
                             )}
                             style={{
                                 left: `${leftPercent}%`,
                                 width: `${widthPercent}%`,
-                                top: `${block.lane * ROW_HEIGHT + 8}px`,
+                                top: `${block.lane * ROW_HEIGHT + 6}px`,
                                 height: `${ROW_HEIGHT - 6}px`,
                                 
-                                // RESTORED: Original gradient and shadow styles
                                 background: `linear-gradient(135deg, ${block.color}dd 0%, ${block.color}99 100%)`,
-                                border: `2px solid ${borderColor}`,
-                                boxShadow: block.hasPeakHours
-                                  ? `0 6px 18px rgba(0,0,0,0.35), 0 0 16px rgba(239,68,68,0.25)`
-                                  : `0 6px 18px rgba(0,0,0,0.35), 0 0 14px ${block.color}22`,
+                                border: borderStyle,
+                                borderColor: borderColor,
+                                boxShadow: shadow,
                                 
                                 zIndex: 10 + block.lane,
                             }}
                             onClick={() => onRemoveActivity(block.id)}
                         >
-                            {/* RESTORED: Icon only layout */}
-                            <span className="w-full h-full grid place-items-center">
-                                <span className="text-[18px] leading-none translate-y-[1px] group-hover:scale-110 transition-transform drop-shadow-sm">
+                            {/* Icon Wrapper */}
+                            <span className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center backdrop-blur-[1px]">
+                                <span className="text-[20px] leading-none filter drop-shadow-md group-hover:scale-110 transition-transform">
                                     {block.icon}
                                 </span>
                             </span>
 
-                            {/* Warning Badge */}
+                            {/* Warning Indicator */}
                             {block.hasPeakHours && (
-                                <span className="absolute -top-2 -right-2 bg-destructive rounded-full w-5 h-5 flex items-center justify-center text-[11px] shadow-md ring-2 ring-background text-white">
-                                    !
+                                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive items-center justify-center text-[10px] text-destructive-foreground font-bold shadow-sm">!</span>
                                 </span>
                             )}
                         </div>
                     </TooltipTrigger>
                     
-                    {/* Tooltip handles the "Text Visibility" issue by showing details on hover instead */}
-                    <TooltipContent side="top" className="p-3">
-                        <div className="space-y-1">
-                            <p className="font-semibold flex items-center gap-2">
-                                {block.icon} {block.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {block.startHour}:00 - {block.startHour + block.duration}:00
-                            </p>
-                            <p className={cn("text-xs font-mono", block.hasPeakHours ? "text-destructive" : "text-green-500")}>
-                                Cost: ${block.cost}
-                            </p>
+                    {/* Tooltip */}
+                    <TooltipContent 
+                        side="top" 
+                        className="glass border-border/50 text-foreground p-3 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                    >
+                        <div className="space-y-1.5 min-w-[140px]">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+                                <span className="font-display font-semibold flex items-center gap-2 text-sm">
+                                    {block.icon} {block.name}
+                                </span>
+                            </div>
+                            
+                            <div className="space-y-1 pt-1">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Time</span>
+                                    <span className="font-mono text-foreground">
+                                        {block.startHour.toString().padStart(2, '0')}:00 - {(block.startHour + block.duration).toString().padStart(2, '0')}:00
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-muted-foreground">Cost</span>
+                                    <span className={cn(
+                                        "font-mono font-bold", 
+                                        block.hasPeakHours ? "text-destructive" : "text-emerald-400"
+                                    )}>
+                                        ${block.cost}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {block.hasPeakHours && (
+                                <div className="text-[10px] text-destructive-foreground bg-destructive/90 px-2 py-1 rounded mt-1 text-center font-medium animate-pulse">
+                                    High Cost Warning ⚡
+                                </div>
+                            )}
+                            <div className="text-[9px] text-muted-foreground/50 text-center pt-1 italic">
+                                Click to remove
+                            </div>
                         </div>
                     </TooltipContent>
                   </Tooltip>
@@ -260,28 +395,17 @@ export const Timeline: React.FC<TimelineProps> = ({
               })}
             </div>
           </div>
-          
-           {/* Period labels */}
-          <div className="flex mt-2">
-            <div className="flex-1 text-center"><span className="text-xs text-muted-foreground">Night</span></div>
-            <div className="flex-1 text-center"><span className="text-xs text-muted-foreground">Morning</span></div>
-            <div className="flex-1 text-center"><span className="text-xs text-muted-foreground">Afternoon</span></div>
-            <div className="flex-1 text-center"><span className="text-xs text-warning font-medium">Peak ⚡</span></div>
-          </div>
-
       </div>
     </TooltipProvider>
   );
 };
 
-// Helper function
 function getLayoutWithLanes(activities: any[]) {
   const sorted = [...activities].sort((a, b) => a.startHour - b.startHour);
   const lanes: number[] = [];
 
   return sorted.map((activity) => {
     let laneIndex = lanes.findIndex((laneEndTime) => laneEndTime <= activity.startHour);
-
     if (laneIndex === -1) {
       laneIndex = lanes.length;
       lanes.push(0);
