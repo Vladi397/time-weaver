@@ -67,36 +67,78 @@ export const Timeline: React.FC<TimelineProps> = ({
     setDragOverHour(hour);
   };
 
-  // 1) Process activities
+  // 1) Process activities with Wrapping Logic
   const rawActivityBlocks = useMemo(() => {
-    return scheduledActivities
-      .map(({ activityId, startHour }) => {
-        const activity = ACTIVITIES.find((a) => a.id === activityId);
-        if (!activity) return null;
+    const blocks: any[] = [];
 
-        const duration = Math.max(2, activity.duration);
-        let cost = 0;
-        let hasPeakHours = false;
-        
-        for (let h = 0; h < duration; h++) {
-            const currentHour = startHour + h;
-            const block = TIME_BLOCKS[currentHour];
-            if (block) {
-                if (block.isPeak) hasPeakHours = true;
-                cost += activity.energyUsage * BASE_RATE * block.multiplier;
-            }
-        }
+    scheduledActivities.forEach(({ activityId, startHour }) => {
+      const activity = ACTIVITIES.find((a) => a.id === activityId);
+      if (!activity) return;
 
-        return {
+      const duration = Math.max(2, activity.duration);
+      let cost = 0;
+      let hasPeakHours = false;
+      
+      // Calculate total cost using modulo to handle wrapping hours
+      for (let h = 0; h < duration; h++) {
+          const currentHour = (startHour + h) % 24;
+          const block = TIME_BLOCKS[currentHour];
+          if (block) {
+              if (block.isPeak) hasPeakHours = true;
+              cost += activity.energyUsage * BASE_RATE * block.multiplier;
+          }
+      }
+
+      const totalCostStr = cost.toFixed(2);
+      const uniqueIdBase = `${activityId}-${startHour}`;
+
+      // Logic to split the block if it wraps around midnight (24h)
+      if (startHour + duration > 24) {
+        const firstSegmentDuration = 24 - startHour;
+        const secondSegmentDuration = duration - firstSegmentDuration;
+
+        // Part 1: End of timeline
+        blocks.push({
           ...activity,
-          duration,
-          startHour,
+          duration: firstSegmentDuration,
+          totalDuration: duration, // Keep track of real total duration
+          startHour: startHour,
           hasPeakHours,
-          cost: cost.toFixed(2),
-          uniqueId: `${activityId}-${startHour}`,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
+          cost: totalCostStr,
+          uniqueId: `${uniqueIdBase}-head`,
+          id: activityId,
+          isSplit: true
+        });
+
+        // Part 2: Start of timeline (Wrapped)
+        blocks.push({
+          ...activity,
+          duration: secondSegmentDuration,
+          totalDuration: duration,
+          startHour: 0,
+          hasPeakHours,
+          cost: totalCostStr,
+          uniqueId: `${uniqueIdBase}-tail`,
+          id: activityId,
+          isSplit: true
+        });
+      } else {
+        // Normal case: Fits within timeline
+        blocks.push({
+          ...activity,
+          duration: duration,
+          totalDuration: duration,
+          startHour: startHour,
+          hasPeakHours,
+          cost: totalCostStr,
+          uniqueId: uniqueIdBase,
+          id: activityId,
+          isSplit: false
+        });
+      }
+    });
+
+    return blocks;
   }, [scheduledActivities]);
 
   // 2) Layout calculation
@@ -111,18 +153,29 @@ export const Timeline: React.FC<TimelineProps> = ({
     };
   }, [rawActivityBlocks]);
 
-  // 3) Ghost Block
-  const ghostBlock = useMemo(() => {
-    if (dragOverHour === null || !draggingInternalId) return null;
-    const [actId] = draggingInternalId.split('-'); 
+  // 3) Ghost Block (Updated for Splitting)
+  const ghostBlocks = useMemo(() => {
+    if (dragOverHour === null || !draggingInternalId) return [];
+    
+    // Extract real activity ID from the unique internal ID (which might contain -head/-tail)
+    const actId = draggingInternalId.split('-')[0]; 
     const activity = ACTIVITIES.find(a => a.id === actId);
-    if (!activity) return null;
+    if (!activity) return [];
     
     const duration = Math.max(2, activity.duration);
-    const widthPercent = (duration / 24) * 100;
-    const leftPercent = (dragOverHour / 24) * 100;
+    const result = [];
 
-    return { left: `${leftPercent}%`, width: `${widthPercent}%` };
+    // Check if ghost wraps around
+    if (dragOverHour + duration > 24) {
+      const firstDur = 24 - dragOverHour;
+      const secondDur = duration - firstDur;
+      result.push({ left: `${(dragOverHour / 24) * 100}%`, width: `${(firstDur / 24) * 100}%` });
+      result.push({ left: `0%`, width: `${(secondDur / 24) * 100}%` });
+    } else {
+      result.push({ left: `${(dragOverHour / 24) * 100}%`, width: `${(duration / 24) * 100}%` });
+    }
+
+    return result;
   }, [dragOverHour, draggingInternalId]);
 
   return (
@@ -201,7 +254,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                 
                 {/* Sun - Noon (Animated) */}
                 <div className="absolute left-[50%] top-[12%] -translate-x-1/2 w-10 h-10 z-10">
-                     <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full animate-pulse"></div>
+                      <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full animate-pulse"></div>
                     <SunIcon className="w-full h-full text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-[spin_16s_linear_infinite]" />
                 </div>
 
@@ -264,18 +317,19 @@ export const Timeline: React.FC<TimelineProps> = ({
               ))}
             </div>
 
-            {/* Ghost Preview */}
-            {ghostBlock && (
+            {/* Ghost Preview (Supports multiple parts for wrapping) */}
+            {ghostBlocks.map((ghost, idx) => (
                 <div 
+                    key={`ghost-${idx}`}
                     className="absolute pointer-events-none z-0 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 animate-pulse"
                     style={{
-                        left: ghostBlock.left,
-                        width: ghostBlock.width,
+                        left: ghost.left,
+                        width: ghost.width,
                         top: 6,
                         bottom: 6
                     }}
                 />
-            )}
+            ))}
 
             {/* Activity Blocks */}
             <div className="absolute inset-0 pointer-events-none">
@@ -284,18 +338,15 @@ export const Timeline: React.FC<TimelineProps> = ({
                 const leftPercent = (block.startHour / 24) * 100;
                 const isDragging = draggingInternalId === block.uniqueId;
                 
-                // RESTORED: Specific border color for separation
-                // If peak, we force a "Danger" red border, otherwise use the activity's own color
                 const borderColor = block.hasPeakHours 
                     ? 'hsl(var(--destructive))' 
                     : block.color;
 
                 const borderStyle = block.hasPeakHours ? '2px solid' : '2px solid';
 
-                // We also add a subtle glow matching the activity color
                 const shadow = block.hasPeakHours
                     ? `0 0 15px hsl(var(--destructive) / 0.5), inset 0 0 10px hsl(var(--destructive) / 0.2)`
-                    : `0 4px 12px rgba(0,0,0,0.5), 0 0 8px ${block.color}44`; // Soft colored glow
+                    : `0 4px 12px rgba(0,0,0,0.5), 0 0 8px ${block.color}44`; 
 
                 return (
                   <Tooltip key={block.uniqueId} delayDuration={0}>
@@ -364,8 +415,9 @@ export const Timeline: React.FC<TimelineProps> = ({
                             <div className="space-y-1 pt-1">
                                 <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Time</span>
+                                    {/* Use totalDuration here to show correct info even on split blocks */}
                                     <span className="font-mono text-foreground">
-                                        {block.startHour.toString().padStart(2, '0')}:00 - {(block.startHour + block.duration).toString().padStart(2, '0')}:00
+                                        {(block.totalDuration ?? block.duration)}h
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-xs">

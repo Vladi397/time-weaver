@@ -38,7 +38,9 @@ const Index: React.FC = () => {
     // Find the latest end time of scheduled activities
     const latestEnd = scheduledActivities.reduce((max, sa) => {
       const activity = ACTIVITIES.find(a => a.id === sa.activityId);
-      const endHour = sa.startHour + (activity?.duration || 0);
+      // Use modulo to handle wrapping time for simulation display
+      const endHour = (sa.startHour + (activity?.duration || 0)) % 24;
+      // If it wraps, we might just want to show the start hour or keep it simple
       return Math.max(max, endHour);
     }, 6);
     
@@ -75,7 +77,9 @@ const Index: React.FC = () => {
       if (!activity) return false;
       
       for (let h = 0; h < activity.duration; h++) {
-        if (TIME_BLOCKS[startHour + h]?.isPeak) return true;
+        // Use modulo to wrap around (e.g. 25 -> 1 AM)
+        const currentHour = (startHour + h) % 24;
+        if (TIME_BLOCKS[currentHour]?.isPeak) return true;
       }
       return false;
     });
@@ -87,11 +91,11 @@ const Index: React.FC = () => {
       return;
     }
 
-    // Check if fits within 24 hours
     const activity = ACTIVITIES.find(a => a.id === activityId);
-    if (!activity || hour + activity.duration > 24) {
-      return;
-    }
+    if (!activity) return; 
+
+    // REMOVED: The check "hour + activity.duration > 24"
+    // Now we allow placing activities even if they wrap around midnight.
 
     setScheduledActivities(prev => [...prev, { activityId, startHour: hour }]);
   }, [scheduledActivities]);
@@ -102,7 +106,9 @@ const Index: React.FC = () => {
 
   const handleMoveActivity = useCallback((activityId: string, newHour: number) => {
     const activity = ACTIVITIES.find(a => a.id === activityId);
-    if (!activity || newHour + activity.duration > 24) return;
+    if (!activity) return;
+
+    // REMOVED: The check "newHour + activity.duration > 24"
 
     setScheduledActivities(prev =>
       prev.map(sa =>
@@ -123,7 +129,9 @@ const Index: React.FC = () => {
       
       let peakCount = 0;
       for (let h = 0; h < activity.duration; h++) {
-        if (TIME_BLOCKS[startHour + h]?.isPeak) peakCount++;
+        // Use modulo for wrapping
+        const currentHour = (startHour + h) % 24;
+        if (TIME_BLOCKS[currentHour]?.isPeak) peakCount++;
       }
       return count + peakCount;
     }, 0);
