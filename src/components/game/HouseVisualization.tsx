@@ -216,13 +216,19 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
             }}
           >
             {/* Main house grid */}
+            // Inside src/components/game/HouseVisualization.tsx
+
+// ... (imports and helper functions remain the same)
+
+// ... inside the return statement ...
+            {/* Main house grid */}
             <div className="grid grid-cols-3 gap-1 bg-border/30 rounded-lg p-1">
               
               {/* --- TOP ROW --- */}
               
-              {/* BEDROOM */}
+              {/* BEDROOM (Unchanged) */}
               <div 
-                className={`${getRoomClass('bedroom')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
+                className={`${getRoomClass('bedroom')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('bedroom')}
               >
                 {(() => {
@@ -246,35 +252,35 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
                 })()}
               </div>
               
-              {/* LIVING ROOM */}
+              {/* LAUNDRY (Moved Here! Was Living Room) */}
               <div 
-                className={`${getRoomClass('living')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
-                style={getRoomStyle('living')}
+                className={`${getRoomClass('laundry')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
+                style={getRoomStyle('laundry')}
               >
                 {(() => {
-                   const state = roomStates.find(r => r.room === 'living');
+                   const state = roomStates.find(r => r.room === 'laundry');
                    const ActiveIcon = state?.activeIcon;
                    return state?.isActive && ActiveIcon ? (
                     <>
                       <span className="mb-1 animate-float">
                         <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
                       </span>
-                      <span className="text-xs text-primary font-medium">Active!</span>
+                      <span className="text-xs text-primary font-medium">Running!</span>
                     </>
                   ) : (
                     <>
                       <span className="mb-1">
-                        <Armchair className="w-8 h-8 text-white/60" />
+                        <Shirt className="w-8 h-8 text-white/60" />
                       </span>
-                      <span className="text-xs text-muted-foreground">Living</span>
+                      <span className="text-xs text-muted-foreground">Laundry</span>
                     </>
                   );
                 })()}
               </div>
 
-              {/* KITCHEN */}
+              {/* KITCHEN (Unchanged) */}
               <div 
-                className={`${getRoomClass('kitchen')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
+                className={`${getRoomClass('kitchen')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('kitchen')}
               >
                 {(() => {
@@ -300,9 +306,9 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
               {/* --- BOTTOM ROW --- */}
 
-              {/* GARAGE */}
+              {/* GARAGE (Unchanged) */}
               <div 
-                className={`${getRoomClass('garage')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
+                className={`${getRoomClass('garage')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
                 style={getRoomStyle('garage')}
               >
                 {(() => {
@@ -326,27 +332,28 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
                 })()}
               </div>
 
-              {/* LAUNDRY */}
+              {/* LIVING ROOM (Moved Here! Was Laundry) */}
+              {/* Added 'col-span-2' to make it the big room */}
               <div 
-                className={`${getRoomClass('laundry')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center col-span-2 transition-all duration-500`}
-                style={getRoomStyle('laundry')}
+                className={`${getRoomClass('living')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center col-span-2`}
+                style={getRoomStyle('living')}
               >
                 {(() => {
-                   const state = roomStates.find(r => r.room === 'laundry');
+                   const state = roomStates.find(r => r.room === 'living');
                    const ActiveIcon = state?.activeIcon;
                    return state?.isActive && ActiveIcon ? (
                     <>
                       <span className="mb-1 animate-float">
                         <ActiveIcon className="w-8 h-8 text-white drop-shadow-md" />
                       </span>
-                      <span className="text-xs text-primary font-medium">Running!</span>
+                      <span className="text-xs text-primary font-medium">Active!</span>
                     </>
                   ) : (
                     <>
                       <span className="mb-1">
-                        <Shirt className="w-8 h-8 text-white/60" />
+                        <Armchair className="w-8 h-8 text-white/60" />
                       </span>
-                      <span className="text-xs text-muted-foreground">Laundry Room</span>
+                      <span className="text-xs text-muted-foreground">Living Room</span>
                     </>
                   );
                 })()}

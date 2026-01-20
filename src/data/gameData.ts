@@ -24,7 +24,7 @@ export const ACTIVITIES: Activity[] = [
   {
     id: 'laundry',
     name: 'Laundry',
-    icon: Shirt, // Was '🧺'
+    icon: Shirt, 
     duration: 2,
     energyUsage: 2.1,
     color: 'hsl(217, 91%, 60%)',
@@ -33,7 +33,7 @@ export const ACTIVITIES: Activity[] = [
   {
     id: 'cooking',
     name: 'Cooking',
-    icon: Utensils, // Was '🍳'
+    icon: Utensils, 
     duration: 1,
     energyUsage: 3.0,
     color: 'hsl(31, 90%, 55%)',
@@ -42,8 +42,8 @@ export const ACTIVITIES: Activity[] = [
   {
     id: 'heating',
     name: 'Heating',
-    icon: Thermometer, // Was '🌡️'
-    duration: 6,
+    icon: Thermometer,
+    duration: 5,
     energyUsage: 1.5,
     color: 'hsl(0, 84%, 60%)',
     room: 'living',
@@ -51,7 +51,7 @@ export const ACTIVITIES: Activity[] = [
   {
     id: 'gaming',
     name: 'Gaming Session',
-    icon: Gamepad2, // Was '🎮'
+    icon: Gamepad2, 
     duration: 3,
     energyUsage: 0.5,
     color: 'hsl(320, 80%, 60%)',
