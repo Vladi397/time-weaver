@@ -6,7 +6,7 @@ import {
   ChevronLeft, 
   Sparkles,
   Zap,
-  Layers, // <--- NEW: Imported Layers icon
+  Layers, 
   MousePointerClick,
   Flame,
   BarChart3,
@@ -133,9 +133,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
       case 'activities':
         return { left: '85px', top: '100px', width: '22%', height: '73%' };
       case 'timeline':
-        return { left: '27%', top: '72%', width: '46%', height: '23%' };
+        return { left: '28%', top: '65%', width: '44%', height: '32%' };
       case 'peak':
-        return { left: '59%', top: '66%', width: '12%', height: '8%' };
+        return { left: '56.5%', top: '66.7%', width: '14%', height: '7%' };
       case 'meters':
         return { right: '90px', top: '100px', width: '21%', height: '46%' };
       case 'suggestions':

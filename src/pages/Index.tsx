@@ -9,6 +9,8 @@ import { HouseVisualization } from '@/components/game/HouseVisualization';
 import { Suggestions } from '@/components/game/Suggestions';
 import { DaySummaryModal } from '@/components/game/DaySummaryModal';
 import { TutorialOverlay } from '@/components/game/TutorialOverlay';
+// ADDED: Import the Layers icon
+import { Layers } from 'lucide-react'; 
 import { 
   ACTIVITIES, 
   TIME_BLOCKS,
@@ -47,7 +49,7 @@ const Index: React.FC = () => {
     setSimulatedHour(Math.min(latestEnd, 23));
   }, [scheduledActivities]);
 
-  // Check if first-time player
+  // Check if first-time player (Auto-Start Tutorial)
   useEffect(() => {
     const hasCompletedTutorial = localStorage.getItem(TUTORIAL_STORAGE_KEY);
     if (!hasCompletedTutorial) {
@@ -94,9 +96,6 @@ const Index: React.FC = () => {
     const activity = ACTIVITIES.find(a => a.id === activityId);
     if (!activity) return; 
 
-    // REMOVED: The check "hour + activity.duration > 24"
-    // Now we allow placing activities even if they wrap around midnight.
-
     setScheduledActivities(prev => [...prev, { activityId, startHour: hour }]);
   }, [scheduledActivities]);
 
@@ -107,8 +106,6 @@ const Index: React.FC = () => {
   const handleMoveActivity = useCallback((activityId: string, newHour: number) => {
     const activity = ACTIVITIES.find(a => a.id === activityId);
     if (!activity) return;
-
-    // REMOVED: The check "newHour + activity.duration > 24"
 
     setScheduledActivities(prev =>
       prev.map(sa =>
@@ -180,7 +177,8 @@ const Index: React.FC = () => {
           <div className="col-span-3 space-y-4">
             <div className="game-card p-4">
               <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-                <span className="text-xl">🎮</span>
+                {/* CHANGED: Replaced Emoji with Layers Icon */}
+                <Layers className="w-6 h-6 text-primary" />
                 Activities
               </h3>
               <p className="text-xs text-muted-foreground mb-4">
