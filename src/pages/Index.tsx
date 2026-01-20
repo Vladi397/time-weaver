@@ -205,18 +205,6 @@ const Index: React.FC = () => {
               onRemoveActivity={handleRemoveActivity}
               onMoveActivity={handleMoveActivity}
             />
-
-            {/* Instructions */}
-            {scheduledActivities.length === 0 && (
-              <div className="text-center py-6 animate-slide-up">
-                <div className="text-4xl mb-3">👆</div>
-                <h3 className="font-display font-semibold text-lg">Plan Your Day</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
-                  Drag activities from the left panel onto the timeline. 
-                  Avoid the orange peak hours (5-8 PM) to save money!
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Right sidebar - Status */}
