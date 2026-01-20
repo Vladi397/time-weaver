@@ -17,14 +17,14 @@ export const ACTIVITIES: Activity[] = [
     name: 'EV Charging',
     icon: Car, 
     duration: 4,
-    energyUsage: 4.8,
+    energyUsage: 7.2,
     color: 'hsl(142, 76%, 36%)',
     room: 'garage',
   },
   {
     id: 'laundry',
     name: 'Laundry',
-    icon: Shirt, 
+    icon: Shirt,
     duration: 2,
     energyUsage: 2.1,
     color: 'hsl(217, 91%, 60%)',
@@ -33,9 +33,9 @@ export const ACTIVITIES: Activity[] = [
   {
     id: 'cooking',
     name: 'Cooking',
-    icon: Utensils, 
+    icon: Utensils,
     duration: 1,
-    energyUsage: 2.6,
+    energyUsage: 3.0,
     color: 'hsl(31, 90%, 55%)',
     room: 'kitchen',
   },
@@ -43,17 +43,17 @@ export const ACTIVITIES: Activity[] = [
     id: 'heating',
     name: 'Heating',
     icon: Thermometer,
-    duration: 5,
-    energyUsage: 3.5,
+    duration: 6,
+    energyUsage: 1.5,
     color: 'hsl(0, 84%, 60%)',
     room: 'living',
   },
   {
     id: 'gaming',
     name: 'Gaming Session',
-    icon: Gamepad2, 
+    icon: Gamepad2,
     duration: 3,
-    energyUsage: 1.0,
+    energyUsage: 0.5,
     color: 'hsl(320, 80%, 60%)',
     room: 'bedroom',
   },
@@ -83,12 +83,14 @@ export const calculateCost = (
     if (!activity) return;
 
     for (let h = 0; h < activity.duration; h++) {
-      const hour = startHour + h;
-      if (hour >= 24) continue;
+      // FIX: Use modulo to wrap around midnight (24 -> 0)
+      const hour = (startHour + h) % 24;
       
       const timeBlock = TIME_BLOCKS[hour];
-      const hourCost = activity.energyUsage * BASE_RATE * timeBlock.multiplier;
-      total += hourCost;
+      if (timeBlock) {
+        const hourCost = activity.energyUsage * BASE_RATE * timeBlock.multiplier;
+        total += hourCost;
+      }
     }
   });
 
@@ -106,9 +108,11 @@ export const calculateGridStress = (
     if (!activity) return;
 
     for (let h = 0; h < activity.duration; h++) {
-      const hour = startHour + h;
-      if (hour < 24) {
-        const timeBlock = TIME_BLOCKS[hour];
+      // FIX: Use modulo to wrap around midnight
+      const hour = (startHour + h) % 24;
+      
+      const timeBlock = TIME_BLOCKS[hour];
+      if (timeBlock) {
         hourLoads[hour] += activity.energyUsage * (timeBlock.isPeak ? 2 : 1);
       }
     }
@@ -178,7 +182,9 @@ export const generateSuggestions = (
     // Check if any hour is during peak
     let isPeakScheduled = false;
     for (let h = 0; h < activity.duration; h++) {
-      if (TIME_BLOCKS[startHour + h]?.isPeak) {
+      // FIX: Use modulo
+      const currentHour = (startHour + h) % 24;
+      if (TIME_BLOCKS[currentHour]?.isPeak) {
         isPeakScheduled = true;
         break;
       }
@@ -189,7 +195,7 @@ export const generateSuggestions = (
       let suggestedHour: number;
       
       if (activityId === 'ev-charging') {
-        suggestedHour = 2; // Overnight
+        suggestedHour = 22; // Overnight
       } else if (activityId === 'laundry' || activityId === 'dryer') {
         suggestedHour = 10; // Mid-morning
       } else if (activityId === 'dishwasher') {
