@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { 
+  X, 
+  ChevronRight, 
+  ChevronLeft, 
+  Sparkles,
+  Zap,
+  Layers, // <--- NEW: Imported Layers icon
+  MousePointerClick,
+  Flame,
+  BarChart3,
+  Lightbulb,
+  Target
+} from 'lucide-react';
 
 interface TutorialStep {
   id: number;
   title: string;
   description: string;
-  emoji: string;
+  icon: React.ElementType;
   highlight?: 'activities' | 'timeline' | 'peak' | 'meters' | 'suggestions';
   tip?: string;
 }
@@ -16,14 +28,15 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 1,
     title: "Welcome to The Daily Grid!",
     description: "You're about to plan your day's energy usage. Your goal: schedule activities to minimize costs and grid stress while staying comfortable.",
-    emoji: "⚡",
+    icon: Zap,
     tip: "Think of this as a puzzle - finding the perfect schedule!"
   },
   {
     id: 2,
     title: "Your Activities",
     description: "On the left, you'll find energy-hungry activities like EV charging, laundry, and heating. Each takes time and power.",
-    emoji: "🎮",
+    // CHANGED: From Gamepad2 (Gaming) to Layers (General List/Cards)
+    icon: Layers, 
     highlight: 'activities',
     tip: "Look at the duration and power icons on each card."
   },
@@ -31,15 +44,15 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 3,
     title: "Drag & Drop",
     description: "Drag any activity card and drop it onto the timeline to schedule it. You can move scheduled activities by dragging them to a new time slot.",
-    emoji: "👆",
+    icon: MousePointerClick,
     highlight: 'timeline',
-    tip: "Click the ✕ on a scheduled activity to remove it."
+    tip: "Click the icon of the scheduled activity to remove it."
   },
   {
     id: 4,
     title: "⚠️ Peak Hours Are Dangerous!",
     description: "The orange zone (5 PM - 8 PM) is when everyone uses power. Scheduling activities here costs MORE and stresses the grid!",
-    emoji: "🔥",
+    icon: Flame,
     highlight: 'peak',
     tip: "Avoid peak hours to save money and help your neighborhood."
   },
@@ -47,7 +60,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 5,
     title: "Watch Your Meters",
     description: "The right panel shows real-time feedback: your costs, grid stress level, and comfort score. Every change you make updates these instantly!",
-    emoji: "📊",
+    icon: BarChart3,
     highlight: 'meters',
     tip: "Green is good, red is bad - keep things in the green!"
   },
@@ -55,7 +68,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 6,
     title: "Smart Suggestions",
     description: "If you schedule during peak hours, the game will suggest better times. Click a suggestion to automatically move that activity!",
-    emoji: "💡",
+    icon: Lightbulb,
     highlight: 'suggestions',
     tip: "Suggestions are reversible - experiment freely!"
   },
@@ -63,7 +76,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 7,
     title: "Ready to Play!",
     description: "Plan your perfect day. When you're done, click 'End Day' to see your final score and neighborhood impact. Good luck!",
-    emoji: "🎯",
+    icon: Target,
     tip: "The best players keep grid stress low while staying comfortable."
   }
 ];
@@ -118,7 +131,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
   const getHighlightStyle = (): React.CSSProperties => {
     switch (step.highlight) {
       case 'activities':
-        return { left: '85px', top: '100px', width: '22%', height: '85%' };
+        return { left: '85px', top: '100px', width: '22%', height: '73%' };
       case 'timeline':
         return { left: '27%', top: '72%', width: '46%', height: '23%' };
       case 'peak':
@@ -126,13 +139,13 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
       case 'meters':
         return { right: '90px', top: '100px', width: '21%', height: '46%' };
       case 'suggestions':
-        return { right: '90px', top: '59%', width: '21%', height: '23%' };
+        return { right: '90px', top: '59%', width: '21%', height: '22%' };
       default:
         return {};
     }
   };
 
- return (
+  return (
     <div className="fixed inset-0 z-50">
       {/* 1. Global Dark Background (For steps with NO highlight) */}
       {!step.highlight && (
@@ -142,17 +155,14 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
       {/* 2. The Spotlight "Hole" (Separated into two layers) */}
       {step.highlight && (
         // LAYER A: The Static Shadow Mask (Does NOT animate)
-        // This positions the "hole" and casts the giant static shadow to darken the screen.
         <div 
           className="absolute rounded-xl pointer-events-none z-40 transition-all duration-500 ease-in-out"
           style={{
             ...getHighlightStyle(),
-            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6)' // Static dark background
+            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6)' 
           }}
         >
-          {/* LAYER B: The Pulsing Border (Does animate)
-              This sits inside the hole and handles the glow/pulse effect independently.
-           */}
+          {/* LAYER B: The Pulsing Border (Does animate) */}
           <div 
             className="absolute inset-0 border-4 border-accent rounded-xl animate-pulse"
             style={{
@@ -162,7 +172,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
         </div>
       )}
 
-      {/* 3. Tutorial Card () */}
+      {/* 3. Tutorial Card */}
       <div className="absolute inset-0 z-50 flex items-start justify-center pointer-events-none pt-20">
         <div 
           className={`
@@ -175,7 +185,6 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
             boxShadow: '0 25px 50px -12px hsl(var(--primary) / 0.3), 0 0 0 1px hsl(var(--border))'
           }}
         >
-          {/* ... (rest of the card content remains exactly the same) ... */}
           {/* Skip button */}
           <button
             onClick={onSkip}
@@ -205,7 +214,10 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
 
           {/* Content */}
           <div className="text-center mb-6">
-            <div className="text-5xl mb-4">{step.emoji}</div>
+            <div className="flex justify-center mb-4">
+              {/* Renders the Icon Component */}
+              <step.icon className="w-12 h-12 text-primary drop-shadow-md" />
+            </div>
             <h2 className="font-display font-bold text-xl mb-3">{step.title}</h2>
             <p className="text-muted-foreground leading-relaxed">{step.description}</p>
             
