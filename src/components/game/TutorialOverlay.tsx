@@ -120,9 +120,9 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
       case 'activities':
         return { left: '85px', top: '100px', width: '22%', height: '85%' };
       case 'timeline':
-        return { left: '25%', top: '55%', width: '50%', height: '20%' };
+        return { left: '27%', top: '72%', width: '46%', height: '23%' };
       case 'peak':
-        return { left: '58%', top: '55%', width: '17%', height: '20%' };
+        return { left: '59%', top: '66%', width: '12%', height: '8%' };
       case 'meters':
         return { right: '90px', top: '100px', width: '21%', height: '46%' };
       case 'suggestions':
@@ -132,35 +132,38 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
     }
   };
 
-  return (
+ return (
     <div className="fixed inset-0 z-50">
-      {/* LOGIC CHANGE: 
-        If there is NO highlight (e.g. Welcome screen), use a simple dark background.
-        If there IS a highlight, the highlight div itself creates the background using a giant shadow.
-      */}
+      {/* 1. Global Dark Background (For steps with NO highlight) */}
       {!step.highlight && (
         <div className="fixed inset-0 z-40 bg-black/60" />
       )}
       
-      {/* Highlight area with "Spotlight" effect */}
+      {/* 2. The Spotlight "Hole" (Separated into two layers) */}
       {step.highlight && (
+        // LAYER A: The Static Shadow Mask (Does NOT animate)
+        // This positions the "hole" and casts the giant static shadow to darken the screen.
         <div 
-          className="absolute border-4 border-accent rounded-xl animate-pulse pointer-events-none z-40"
+          className="absolute rounded-xl pointer-events-none z-40 transition-all duration-500 ease-in-out"
           style={{
             ...getHighlightStyle(),
-            // This huge shadow (9999px) creates the dark backdrop for the rest of the screen,
-            // leaving the center of this div transparent (the "hole").
-            boxShadow: `
-              0 0 0 9999px rgba(0, 0, 0, 0.6), 
-              0 0 40px hsl(var(--accent) / 0.5), 
-              inset 0 0 20px hsl(var(--accent) / 0.1)
-            `
+            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6)' // Static dark background
           }}
-        />
+        >
+          {/* LAYER B: The Pulsing Border (Does animate)
+              This sits inside the hole and handles the glow/pulse effect independently.
+           */}
+          <div 
+            className="absolute inset-0 border-4 border-accent rounded-xl animate-pulse"
+            style={{
+              boxShadow: '0 0 40px hsl(var(--accent) / 0.5), inset 0 0 20px hsl(var(--accent) / 0.1)'
+            }}
+          />
+        </div>
       )}
 
-      {/* Tutorial Card */}
-      <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+      {/* 3. Tutorial Card () */}
+      <div className="absolute inset-0 z-50 flex items-start justify-center pointer-events-none pt-20">
         <div 
           className={`
             game-card max-w-md p-6 pointer-events-auto
@@ -172,6 +175,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
             boxShadow: '0 25px 50px -12px hsl(var(--primary) / 0.3), 0 0 0 1px hsl(var(--border))'
           }}
         >
+          {/* ... (rest of the card content remains exactly the same) ... */}
           {/* Skip button */}
           <button
             onClick={onSkip}
