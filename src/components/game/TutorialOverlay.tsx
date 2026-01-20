@@ -135,11 +135,11 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, on
       case 'timeline':
         return { left: '28%', top: '65%', width: '44%', height: '32%' };
       case 'peak':
-        return { left: '56.5%', top: '66.7%', width: '14%', height: '7%' };
+        return { left: '56.5%', top: '65.4%', width: '14%', height: '7%' };
       case 'meters':
         return { right: '90px', top: '100px', width: '21%', height: '46%' };
       case 'suggestions':
-        return { right: '90px', top: '59%', width: '21%', height: '22%' };
+        return { right: '90px', top: '58%', width: '21%', height: '22%' };
       default:
         return {};
     }
