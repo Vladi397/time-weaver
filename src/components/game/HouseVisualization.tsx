@@ -46,12 +46,6 @@ const getTimeIcon = (timeOfDay: string) => {
   }
 };
 
-const getTimeLabel = (hour: number) => {
-  const period = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-  return `${displayHour}:00 ${period}`;
-};
-
 const getSkyGradient = (timeOfDay: string) => {
   switch (timeOfDay) {
     case 'dawn':
@@ -96,6 +90,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   const timeOfDay = useMemo(() => getTimeOfDay(currentHour), [currentHour]);
   
   // Determine room states based on scheduled activities
+  // Determine room states based on scheduled activities
   const getRoomStates = (): RoomState[] => {
     const rooms: RoomType[] = ['garage', 'laundry', 'kitchen', 'living', 'bedroom'];
     
@@ -118,6 +113,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
       return {
         room,
+        isActive: !!scheduledInstance,
         isActive: !!scheduledInstance,
         isStressed: isInPeak && gridStress > 50,
         activeIcon: activity?.icon, // This is now a component reference (e.g., Car)
@@ -162,7 +158,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   };
 
   return (
-    <div className="game-card p-6 relative overflow-hidden">
+    <div className="game-card p-4 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px]">
       {/* Sky background with time-based gradient */}
       <div 
         className="absolute inset-0 transition-all duration-1000"
@@ -193,18 +189,15 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
         style={{ background: getAmbientOverlay(timeOfDay) }}
       />
       
-      {/* Time indicator */}
-      <div className="relative z-10 flex items-center justify-between mb-4">
-        <h3 className="font-display font-semibold text-lg flex items-center gap-2">
-          {getTimeIcon(timeOfDay)}
+      {/* Title & Icon - Centered */}
+      <div className="relative z-10 flex items-center justify-center gap-2 mb-6 text-foreground/90">
+        {getTimeIcon(timeOfDay)}
+        <h3 className="font-display font-semibold text-lg drop-shadow-sm">
           Your Home
         </h3>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm">
-          <span className="text-sm font-medium text-white/90">{getTimeLabel(currentHour)}</span>
-        </div>
       </div>
       
-      {/* Isometric-style house */}
+      {/* Isometric-style house container */}
       <div className="relative w-full aspect-[4/3] max-w-md mx-auto z-10">
         {/* Ground shadow */}
         <div 
@@ -216,11 +209,11 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
         />
 
         {/* House base structure */}
-        <div className="absolute inset-0 flex items-end justify-center pb-8">
+        <div className="absolute inset-0 flex items-end justify-center pb-6">
           <div 
-            className="relative w-full max-w-[320px]"
+            className="relative w-full max-w-[380px]"
             style={{
-              transform: 'perspective(500px) rotateX(5deg)',
+              transform: 'perspective(600px) rotateX(5deg)',
             }}
           >
             {/* Main house grid */}
@@ -230,7 +223,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
               
               {/* BEDROOM */}
               <div 
-                className={`${getRoomClass('bedroom')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
+                className={`${getRoomClass('bedroom')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
                 style={getRoomStyle('bedroom')}
               >
                 {(() => {
@@ -256,7 +249,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
               
               {/* LIVING ROOM */}
               <div 
-                className={`${getRoomClass('living')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
+                className={`${getRoomClass('living')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
                 style={getRoomStyle('living')}
               >
                 {(() => {
@@ -282,7 +275,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
               {/* KITCHEN */}
               <div 
-                className={`${getRoomClass('kitchen')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
+                className={`${getRoomClass('kitchen')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
                 style={getRoomStyle('kitchen')}
               >
                 {(() => {
@@ -310,7 +303,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
               {/* GARAGE */}
               <div 
-                className={`${getRoomClass('garage')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center`}
+                className={`${getRoomClass('garage')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center transition-all duration-500`}
                 style={getRoomStyle('garage')}
               >
                 {(() => {
@@ -336,7 +329,7 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
               {/* LAUNDRY */}
               <div 
-                className={`${getRoomClass('laundry')} rounded-lg p-3 aspect-square flex flex-col items-center justify-center col-span-2`}
+                className={`${getRoomClass('laundry')} rounded-lg p-2 aspect-square flex flex-col items-center justify-center col-span-2 transition-all duration-500`}
                 style={getRoomStyle('laundry')}
               >
                 {(() => {
