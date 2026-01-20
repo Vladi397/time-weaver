@@ -253,7 +253,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                 </div>
                 
                 {/* Sun - Noon (Animated) */}
-                <div className="absolute left-[50%] top-[12%] -translate-x-1/2 w-10 h-10 z-10">
+                <div className="absolute left-[50%] top-[-4%] -translate-x-1/2 w-10 h-10 z-10">
                      <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full animate-pulse"></div>
                     <SunIcon className="w-full h-full text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-[spin_16s_linear_infinite]" />
                 </div>
