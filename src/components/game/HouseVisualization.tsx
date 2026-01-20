@@ -114,7 +114,6 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
       return {
         room,
         isActive: !!scheduledInstance,
-        isActive: !!scheduledInstance,
         isStressed: isInPeak && gridStress > 50,
         activeIcon: activity?.icon, // This is now a component reference (e.g., Car)
       };
