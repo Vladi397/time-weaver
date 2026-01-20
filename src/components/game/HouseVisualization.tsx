@@ -90,7 +90,6 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   const timeOfDay = useMemo(() => getTimeOfDay(currentHour), [currentHour]);
   
   // Determine room states based on scheduled activities
-  // Determine room states based on scheduled activities
   const getRoomStates = (): RoomState[] => {
     const rooms: RoomType[] = ['garage', 'laundry', 'kitchen', 'living', 'bedroom'];
     
@@ -113,7 +112,6 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
 
       return {
         room,
-        isActive: !!scheduledInstance,
         isActive: !!scheduledInstance,
         isStressed: isInPeak && gridStress > 50,
         activeIcon: activity?.icon, // This is now a component reference (e.g., Car)
@@ -158,7 +156,10 @@ export const HouseVisualization: React.FC<HouseVisualizationProps> = ({
   };
 
   return (
-    <div className="game-card p-4 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px]">
+    // UPDATED: justify-end ensures content is at the bottom, pb-8 adds spacing
+    // Change 'justify-center' or 'justify-end' to 'justify-start'
+// Add 'pt-20' (top padding) to push the content down
+<div className="game-card p-4 relative overflow-hidden flex flex-col items-center justify-start min-h-[400px] pt-10">
       {/* Sky background with time-based gradient */}
       <div 
         className="absolute inset-0 transition-all duration-1000"
