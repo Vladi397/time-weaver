@@ -1,4 +1,4 @@
-# Time Weaver
+# The Daily Grid
 
 Time Weaver is an interactive gamified application built with React and TypeScript designed to simulate and visualize energy consumption, comfort levels, and grid status over a timeline.
 
